@@ -57,18 +57,18 @@ After copying the environment file, update `DATABASE_URL` with your PostgreSQL c
 
 ---
 
-## Run
+Execute a pipeline for a specific indicator:
 
-Execute the World Bank GDP ingestion pipeline.
+​```
+python -m etl.pipelines.world_bank_gdp          # GDP, current US$
+python -m etl.pipelines.world_bank_population   # Total population
+​```
 
-```bash
-python -m etl.pipelines.world_bank_gdp
-```
+Each pipeline:
 
-The pipeline:
-
-- Downloads GDP (Current US$) data from the World Bank API
+- Downloads the indicator from the World Bank API
 - Transforms the raw observations into the project schema
+- Validates the result (structural checks; see `src/etl/validate.py`)
 - Loads the processed records into the PostgreSQL database
 
 ---
@@ -88,9 +88,12 @@ pytest tests/
 Implemented:
 
 - World Bank GDP (Current US$) ingestion pipeline
+- World Bank total population ingestion pipeline
+- Shared pipeline runner (`src/etl/pipelines/common.py`)
+- Data-quality validation before load
 - End-to-end ETL workflow
 - PostgreSQL persistence
-- Automated transformation tests
+- Automated transformation, pipeline, and validation tests
 
 ---
 
@@ -102,7 +105,6 @@ Planned additions include:
 - IMF data integration
 - FRED data integration
 - Expanded transformation library
-- Data quality validation
 - Pipeline orchestration
 
 ---
