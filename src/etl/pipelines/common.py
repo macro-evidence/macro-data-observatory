@@ -7,6 +7,7 @@ from ..db import create_tables, get_engine
 from ..load import load_indicator
 from ..sources.world_bank import fetch_indicator
 from ..transform import world_bank_records_to_frame
+from ..validate import validate_frame
 
 SOURCE = "world_bank"
 
@@ -31,6 +32,8 @@ def run_world_bank_indicator(indicator_code: str) -> int:
 
     frame = world_bank_records_to_frame(raw_records, source=SOURCE)
     logger.info("Transformed to %s country-year rows", len(frame))
+
+    validate_frame(frame, indicator_code)
 
     row_count = load_indicator(frame, engine, source=SOURCE, indicator_code=indicator_code)
     logger.info("Pipeline complete: %s rows loaded", row_count)
