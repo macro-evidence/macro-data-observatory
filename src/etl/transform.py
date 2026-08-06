@@ -51,3 +51,51 @@ def world_bank_records_to_frame(
         subset=["source", "indicator_code", "country_code", "year"]
     )
     return frame.sort_values(["country_code", "year"]).reset_index(drop=True)
+
+
+def imf_indicator_values_to_frame(
+    values: dict[str, dict[str, Any]],
+    indicator_code: str,
+    indicator_name: str,
+    country_names: dict[str, str],
+    source: str = "imf",
+) -> pd.DataFrame:
+    """Convert IMF country/year values into a tidy DataFrame.
+
+    ``country_names`` is the country metadata supplied by the caller. Only
+    country codes present in that mapping are emitted, keeping aggregate and
+    analytical-group series out of the country-level observation table.
+    """
+    rows = []
+    for country_code, observations in values.items():
+        country_name = country_names.get(country_code)
+        if not country_name:
+            continue
+
+        for year_text, value in observations.items():
+            try:
+                year = int(year_text)
+            except (TypeError, ValueError):
+                continue
+
+            rows.append(
+                {
+                    "source": source,
+                    "indicator_code": indicator_code,
+                    "indicator_name": indicator_name,
+                    "country_code": country_code,
+                    "country_name": country_name,
+                    "year": year,
+                    "value": value,
+                    "loaded_at": date.today(),
+                }
+            )
+
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return frame
+
+    frame = frame.drop_duplicates(
+        subset=["source", "indicator_code", "country_code", "year"]
+    )
+    return frame.sort_values(["country_code", "year"]).reset_index(drop=True)
