@@ -62,6 +62,7 @@ Execute a pipeline for a specific indicator:
 ​```
 python -m etl.pipelines.world_bank_gdp          # GDP, current US$
 python -m etl.pipelines.world_bank_population   # Total population
+python -m etl.pipelines.imf_real_gdp_growth     # IMF real GDP growth
 ​```
 
 Each pipeline:
@@ -89,7 +90,8 @@ Implemented:
 
 - World Bank GDP (Current US$) ingestion pipeline
 - World Bank total population ingestion pipeline
-- Shared pipeline runner (`src/etl/pipelines/common.py`)
+- IMF real GDP growth ingestion pipeline (DataMapper source; see governance decision 0004)
+- Generalized pipeline runner supporting pluggable extract/transform steps per source (`src/etl/pipelines/common.py`; see governance decision 0003)
 - Data-quality validation before load
 - End-to-end ETL workflow
 - PostgreSQL persistence
@@ -102,7 +104,7 @@ Implemented:
 Planned additions include:
 
 - Additional World Bank indicators
-- IMF data integration
+- Additional IMF indicators
 - FRED data integration
 - Expanded transformation library
 - Pipeline orchestration
