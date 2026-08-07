@@ -59,11 +59,11 @@ After copying the environment file, update `DATABASE_URL` with your PostgreSQL c
 
 Execute a pipeline for a specific indicator:
 
-​```
+```
 python -m etl.pipelines.world_bank_gdp          # GDP, current US$
 python -m etl.pipelines.world_bank_population   # Total population
 python -m etl.pipelines.imf_real_gdp_growth     # IMF real GDP growth
-​```
+```
 
 Each pipeline:
 

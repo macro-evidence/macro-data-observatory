@@ -1,4 +1,6 @@
 """Unit tests for data-quality validation. No network or DB required."""
+from datetime import date
+
 import pandas as pd
 import pytest
 
@@ -43,6 +45,22 @@ def test_bad_country_code_raises():
 
 def test_year_out_of_range_raises():
     frame = _base_frame(year=[1900])
+    with pytest.raises(ValidationError):
+        validate_frame(frame, "NY.GDP.MKTP.CD")
+
+
+def test_near_future_forecast_year_passes():
+    """IMF's WEO-based indicators carry forecasts several years out —
+    those years must not be rejected as structurally invalid."""
+    forecast_year = date.today().year + 5
+    frame = _base_frame(source=["imf"], indicator_code=["NGDP_RPCH"], year=[forecast_year])
+    validate_frame(frame, "NGDP_RPCH")  # should not raise
+
+
+def test_far_future_year_raises():
+    """Years further out than any known forecast horizon should still
+    be treated as structurally suspicious."""
+    frame = _base_frame(year=[date.today().year + 20])
     with pytest.raises(ValidationError):
         validate_frame(frame, "NY.GDP.MKTP.CD")
 
