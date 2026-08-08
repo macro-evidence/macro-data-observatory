@@ -94,6 +94,57 @@ def test_rejects_unknown_indicator_metadata(mock_get):
 
 
 @patch("etl.sources.imf.requests.get")
+def test_lists_all_indicators(mock_get):
+    response = Mock()
+    response.json.return_value = {
+        "indicators": {
+            "NGDP_RPCH": {"label": "Real GDP growth", "unit": "Annual percent change"},
+            "PCPIPCH": {"label": "Inflation rate, average consumer prices", "unit": "Annual percent change"},
+        }
+    }
+    mock_get.return_value = response
+
+    indicators = imf.list_indicators(timeout=10)
+
+    assert indicators == {
+        "NGDP_RPCH": "Real GDP growth",
+        "PCPIPCH": "Inflation rate, average consumer prices",
+    }
+    mock_get.assert_called_once_with(f"{imf._BASE_URL}/indicators", timeout=10)
+    response.raise_for_status.assert_called_once_with()
+
+
+@patch("etl.sources.imf.requests.get")
+def test_list_indicators_skips_malformed_entries(mock_get):
+    """A malformed entry (missing/non-string label) is dropped rather than
+    crashing the whole listing — useful for a discovery-time function
+    where the goal is a usable overview, not strict validation."""
+    response = Mock()
+    response.json.return_value = {
+        "indicators": {
+            "NGDP_RPCH": {"label": "Real GDP growth"},
+            "BROKEN": {"unit": "no label here"},
+            "ALSO_BROKEN": "not even a dict",
+        }
+    }
+    mock_get.return_value = response
+
+    indicators = imf.list_indicators()
+
+    assert indicators == {"NGDP_RPCH": "Real GDP growth"}
+
+
+@patch("etl.sources.imf.requests.get")
+def test_list_indicators_rejects_unexpected_response_shape(mock_get):
+    response = Mock()
+    response.json.return_value = {"indicators": []}
+    mock_get.return_value = response
+
+    with pytest.raises(ValueError, match="Unexpected IMF indicator metadata"):
+        imf.list_indicators()
+
+
+@patch("etl.sources.imf.requests.get")
 def test_fetches_country_names(mock_get):
     response = Mock()
     response.json.return_value = SAMPLE_COUNTRIES_RESPONSE

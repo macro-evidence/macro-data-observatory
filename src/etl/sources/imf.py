@@ -62,22 +62,53 @@ def fetch_indicator(
     return indicator_values
 
 
-def fetch_indicator_name(indicator_code: str, timeout: int = 30) -> str:
-    """Fetch the authoritative IMF label for an indicator code."""
+def _fetch_indicators(timeout: int = 30) -> dict[str, dict[str, Any]]:
+    """Fetch the full IMF indicator metadata payload (code -> metadata).
+
+    Private to this module. ``fetch_indicator_name`` and ``list_indicators``
+    both need this same payload — one call, two views onto it.
+    """
     response = requests.get(f"{_BASE_URL}/indicators", timeout=timeout)
     response.raise_for_status()
     payload = response.json()
 
     indicators = payload.get("indicators") if isinstance(payload, dict) else None
-    indicator = indicators.get(indicator_code) if isinstance(indicators, dict) else None
+    if not isinstance(indicators, dict):
+        raise ValueError(f"Unexpected IMF indicator metadata: {payload!r}")
+
+    return indicators
+
+
+def fetch_indicator_name(indicator_code: str, timeout: int = 30) -> str:
+    """Fetch the authoritative IMF label for an indicator code."""
+    indicators = _fetch_indicators(timeout=timeout)
+
+    indicator = indicators.get(indicator_code)
     label = indicator.get("label") if isinstance(indicator, dict) else None
     if not isinstance(label, str):
         raise ValueError(
-            f"Unexpected IMF indicator metadata for {indicator_code}: {payload!r}"
+            f"Unexpected IMF indicator metadata for {indicator_code}: {indicators!r}"
         )
 
     logger.info("Fetched IMF indicator metadata for %s", indicator_code)
     return label
+
+
+def list_indicators(timeout: int = 30) -> dict[str, str]:
+    """Fetch the authoritative IMF indicator-code-to-label mapping.
+
+    For discovering available indicators before committing to one — not
+    used by any pipeline directly.
+    """
+    indicators = _fetch_indicators(timeout=timeout)
+
+    indicator_labels = {
+        indicator_code: metadata["label"]
+        for indicator_code, metadata in indicators.items()
+        if isinstance(metadata, dict) and isinstance(metadata.get("label"), str)
+    }
+    logger.info("Fetched IMF indicator metadata (%s indicators)", len(indicator_labels))
+    return indicator_labels
 
 
 def fetch_country_names(timeout: int = 30) -> dict[str, str]:
