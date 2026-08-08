@@ -1,5 +1,7 @@
 # Macro Data Observatory
 
+[![Tests](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml/badge.svg)](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml)
+
 Macro Data Observatory is an open-source data engineering project for building reproducible ETL pipelines that collect, transform, and store macroeconomic indicators from authoritative public data providers such as the World Bank, IMF, and FRED.
 
 ---
@@ -82,6 +84,8 @@ Run the automated test suite.
 pytest tests/
 ```
 
+The same suite runs automatically on every push and pull request via [GitHub Actions](.github/workflows/tests.yml), against both the minimum supported Python version and the version used in local development.
+
 ---
 
 ## Project Status
@@ -119,3 +123,11 @@ Repository development follows the organization-wide engineering standards maint
 Architectural decisions and significant technical changes are documented in the
 [`decisions/`](https://github.com/macro-evidence/governance/tree/main/decisions)
 directory before implementation.
+
+---
+
+## License
+
+Licensed under the [GNU Affero General Public License v3.0-only](LICENSE) (AGPL-3.0-only).
+
+This license governs the code in this repository. It does not itself grant rights to Macro Evidence's name, logos, or visual identity — see [`TRADEMARKS.md`](https://github.com/macro-evidence/governance/blob/main/TRADEMARKS.md) in the [Governance](https://github.com/macro-evidence/governance) for that separate policy.
