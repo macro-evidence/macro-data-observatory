@@ -3,7 +3,7 @@
 Deliberately a single flat table at this stage. Dimensional modeling
 (separate country/indicator dimensions) is Stage 2 — Structured Data
 Warehouse — per ORGANIZATION_CHARTER.md's Development Roadmap. See
-governance/decisions/0001 for the reasoning.
+decisions/0001 for the reasoning.
 """
 from __future__ import annotations
 

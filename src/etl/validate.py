@@ -23,7 +23,7 @@ MIN_YEAR = 1960
 # IMF's WEO-based indicators (e.g. NGDP_RPCH) carry forward-looking
 # forecasts, typically ~5 years past the current year. World Bank data
 # is actuals-only, so this ceiling is generous for it but necessary for
-# IMF. See governance/decisions/0005.
+# IMF. See decisions/0005.
 MAX_YEAR_OFFSET = 5
 NULL_RATE_WARNING_THRESHOLD = 0.5
 

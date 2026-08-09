@@ -2,7 +2,7 @@
 
 Full-refresh per (source, indicator_code): delete existing rows for that
 pair, then bulk-insert the fresh frame, in a single transaction. Simple
-and correct at this data volume — see governance/decisions/0001.
+and correct at this data volume — see decisions/0001.
 """
 from __future__ import annotations
 

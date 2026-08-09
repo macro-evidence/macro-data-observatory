@@ -1,4 +1,4 @@
-# Macro Data Observatory
+# Macro Data Observatory (MDO)
 
 [![Tests](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml/badge.svg)](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml)
 
@@ -18,8 +18,8 @@ The project provides the engineering foundation for collecting, standardizing, a
 - PostgreSQL data storage
 - SQLAlchemy database integration
 - Environment-based configuration
-- Automated testing with Pytest
-- World Bank API ingestion
+- Automated testing with Pytest, run in CI on every push
+- World Bank and IMF API ingestion
 - Structured transformation layer
 
 ---
@@ -65,11 +65,12 @@ Execute a pipeline for a specific indicator:
 python -m etl.pipelines.world_bank_gdp          # GDP, current US$
 python -m etl.pipelines.world_bank_population   # Total population
 python -m etl.pipelines.imf_real_gdp_growth     # IMF real GDP growth
+python -m etl.pipelines.imf_inflation           # IMF inflation, average consumer prices
 ```
 
 Each pipeline:
 
-- Downloads the indicator from the World Bank API
+- Downloads the indicator from the source's public API (World Bank or IMF)
 - Transforms the raw observations into the project schema
 - Validates the result (structural checks; see `src/etl/validate.py`)
 - Loads the processed records into the PostgreSQL database
@@ -94,9 +95,11 @@ Implemented:
 
 - World Bank GDP (Current US$) ingestion pipeline
 - World Bank total population ingestion pipeline
-- IMF real GDP growth ingestion pipeline (DataMapper source; see governance decision 0004)
-- Generalized pipeline runner supporting pluggable extract/transform steps per source (`src/etl/pipelines/common.py`; see governance decision 0003)
-- Data-quality validation before load
+- IMF real GDP growth ingestion pipeline (DataMapper source; see [decision 0004](decisions/0004-imf-datamapper-discovery-phase.md))
+- IMF inflation (average consumer prices) ingestion pipeline (see [decision 0006](decisions/0006-second-imf-indicator-inflation.md))
+- Generalized pipeline runner supporting pluggable extract/transform steps per source (`src/etl/pipelines/common.py`; see [decision 0003](decisions/0003-generalized-pipeline-runner.md))
+- Data-quality validation before load, including a forecast-aware year ceiling for sources with forward-looking data (see [decision 0005](decisions/0005-widen-validation-year-ceiling.md))
+- Continuous integration via GitHub Actions, run on every push and PR (see [decision 0007](decisions/0007-continuous-integration.md))
 - End-to-end ETL workflow
 - PostgreSQL persistence
 - Automated transformation, pipeline, and validation tests
@@ -107,8 +110,7 @@ Implemented:
 
 Planned additions include:
 
-- Additional World Bank indicators
-- Additional IMF indicators
+- Additional World Bank and IMF indicators
 - FRED data integration
 - Expanded transformation library
 - Pipeline orchestration
@@ -120,9 +122,8 @@ Planned additions include:
 Repository development follows the organization-wide engineering standards maintained in the
 [Governance](https://github.com/macro-evidence/governance).
 
-Architectural decisions and significant technical changes are documented in the
-[`decisions/`](https://github.com/macro-evidence/governance/tree/main/decisions)
-directory before implementation.
+Architectural decisions and significant technical changes specific to this repository are documented in
+[`decisions/`](decisions/) before implementation. Decisions that genuinely apply across multiple Macro Evidence repositories are recorded in [governance's `decisions/`](https://github.com/macro-evidence/governance/tree/main/decisions) instead — see [decision 0008](decisions/0008-adr-placement-per-repository.md) for that split.
 
 ---
 
