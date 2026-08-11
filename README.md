@@ -111,7 +111,7 @@ Implemented:
 Planned additions include:
 
 - Additional World Bank and IMF indicators
-- FRED data integration
+- FRED data integration, targeting a series-first schema built for FRED's per-series frequency and seasonal-adjustment structure (schema direction decided; see [decision 0009](decisions/0009-series-first-dimensional-schema.md) — World Bank and IMF pipelines are unaffected until this work begins)
 - Expanded transformation library
 - Pipeline orchestration
 
