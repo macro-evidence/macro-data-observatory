@@ -1,17 +1,47 @@
 [project]
 name = "macro-data-observatory"
 version = "0.1.0"
-description = "Data engineering platform for macroeconomic datasets (World Bank, IMF, FRED)"
+description = "Open-source data platform for ingesting, validating, and structuring macroeconomic datasets."
 readme = "README.md"
 requires-python = ">=3.11"
 
 authors = [
-    { name = "Macro Evidence" }
+    { name = "Macro Evidence", email = "hello@macro-evidence.com" },
 ]
+
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+
+keywords = [
+    "macroeconomics",
+    "economic-data",
+    "data-engineering",
+    "data-pipeline",
+    "etl",
+    "world-bank",
+    "imf",
+    "fred",
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+[project.urls]
+Homepage = "https://mdo.macro-evidence.com"
+Source = "https://github.com/macro-evidence/macro-data-observatory"
+Issues = "https://github.com/macro-evidence/macro-data-observatory/issues"
+Funding = "https://github.com/sponsors/macro-evidence"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
