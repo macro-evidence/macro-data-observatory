@@ -66,6 +66,7 @@ python -m etl.pipelines.world_bank_gdp          # GDP, current US$
 python -m etl.pipelines.world_bank_population   # Total population
 python -m etl.pipelines.imf_real_gdp_growth     # IMF real GDP growth
 python -m etl.pipelines.imf_inflation           # IMF inflation, average consumer prices
+python -m etl.pipelines.fred_unemployment_rate  # US unemployment rate (FRED)
 ```
 
 Each pipeline:
@@ -97,6 +98,7 @@ Implemented:
 - World Bank total population ingestion pipeline
 - IMF real GDP growth ingestion pipeline (DataMapper source; see [decision 0004](decisions/0004-imf-datamapper-discovery-phase.md))
 - IMF inflation (average consumer prices) ingestion pipeline (see [decision 0006](decisions/0006-second-imf-indicator-inflation.md))
+- FRED US unemployment rate ingestion pipeline — series-first schema (see [decision 0009](decisions/0009-series-first-dimensional-schema.md)), curated series registry (see [decision 0010](decisions/0010-fred-discovery-phase.md)), indicator selection (see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md)). World Bank and IMF pipelines remain on the original schema, unaffected
 - Generalized pipeline runner supporting pluggable extract/transform steps per source (`src/etl/pipelines/common.py`; see [decision 0003](decisions/0003-generalized-pipeline-runner.md))
 - Data-quality validation before load, including a forecast-aware year ceiling for sources with forward-looking data (see [decision 0005](decisions/0005-widen-validation-year-ceiling.md))
 - Continuous integration via GitHub Actions, run on every push and PR (see [decision 0007](decisions/0007-continuous-integration.md))
@@ -111,7 +113,7 @@ Implemented:
 Planned additions include:
 
 - Additional World Bank and IMF indicators
-- FRED data integration: series-first schema direction decided (see [decision 0009](decisions/0009-series-first-dimensional-schema.md)); discovery-phase access pattern decided — curated series registry, not runtime search (see [decision 0010](decisions/0010-fred-discovery-phase.md)). No FRED pipeline exists yet; World Bank and IMF pipelines are unaffected until this work begins
+- Additional FRED indicators (`UNRATENSA`, unemployment rate not seasonally adjusted, already live-confirmed as a candidate — see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md))
 - Expanded transformation library
 - Pipeline orchestration
 
