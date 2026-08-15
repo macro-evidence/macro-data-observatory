@@ -53,6 +53,41 @@ def world_bank_records_to_frame(
     return frame.sort_values(["country_code", "year"]).reset_index(drop=True)
 
 
+def fred_observations_to_frame(observations: list[dict[str, Any]]) -> pd.DataFrame:
+    """Convert raw FRED observation records into a tidy DataFrame.
+
+    FRED's missing-value convention is the literal string "." (confirmed
+    live, decision 0010) — converted to a real null here, not left for
+    validation or load to discover silently. Does not attach a series_id:
+    that's a database-assigned foreign key, resolved at load time once the
+    series row exists (decision 0009), not something transform can know.
+    """
+    rows = []
+    for obs in observations:
+        try:
+            observation_date = date.fromisoformat(obs["date"])
+        except (KeyError, TypeError, ValueError):
+            continue
+
+        raw_value = obs.get("value")
+        value = None if raw_value in (None, ".") else float(raw_value)
+
+        rows.append(
+            {
+                "date": observation_date,
+                "value": value,
+                "loaded_at": date.today(),
+            }
+        )
+
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return frame
+
+    frame = frame.drop_duplicates(subset=["date"])
+    return frame.sort_values("date").reset_index(drop=True)
+
+
 def imf_indicator_values_to_frame(
     values: dict[str, dict[str, Any]],
     indicator_code: str,

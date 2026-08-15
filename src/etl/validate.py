@@ -74,3 +74,54 @@ def validate_frame(frame: pd.DataFrame, indicator_code: str) -> None:
         )
 
     logger.info("%s: validation passed (%s rows)", indicator_code, len(frame))
+
+
+OBSERVATION_REQUIRED_COLUMNS = {"date", "value", "loaded_at"}
+# FRED's UNRATE alone starts 1948-01-01 (decision 0011) — well before
+# MIN_YEAR (1960), which was set for World Bank/IMF's actuals-only annual
+# data and was never intended as a floor for every source. Series-first
+# sources get their own, more permissive floor: a sanity check against a
+# parsing bug producing an implausible date, not a real historical limit.
+OBSERVATION_MIN_YEAR = 1900
+
+
+def validate_observations_frame(frame: pd.DataFrame, series_label: str) -> None:
+    """Run quality checks on a transformed, date-keyed observations frame
+    before it's loaded.
+
+    Parallel to validate_frame, not a replacement — World Bank and IMF
+    keep using validate_frame, unchanged, on indicator_observations. This
+    function exists because validate_frame hardcodes a `year` column and a
+    (source, indicator_code, country_code, year) dedup key that a
+    date-keyed, single-series frame doesn't have — flagged as a certain,
+    not conditional, need in decision 0010's Consequences.
+    """
+    if frame.empty:
+        raise ValidationError(f"{series_label}: transformed frame is empty")
+
+    missing_cols = OBSERVATION_REQUIRED_COLUMNS - set(frame.columns)
+    if missing_cols:
+        raise ValidationError(f"{series_label}: missing columns {missing_cols}")
+
+    current_year = date.today().year
+    max_year = current_year + MAX_YEAR_OFFSET
+    years = frame["date"].apply(lambda d: d.year)
+    out_of_range = frame[(years < OBSERVATION_MIN_YEAR) | (years > max_year)]
+    if not out_of_range.empty:
+        raise ValidationError(
+            f"{series_label}: {len(out_of_range)} rows with date outside "
+            f"[{OBSERVATION_MIN_YEAR}, {max_year}]"
+        )
+
+    dupes = frame.duplicated(subset=["date"])
+    if dupes.any():
+        raise ValidationError(f"{series_label}: {int(dupes.sum())} duplicate date rows")
+
+    null_rate = frame["value"].isna().mean()
+    if null_rate > NULL_RATE_WARNING_THRESHOLD:
+        logger.warning(
+            "%s: %.0f%% of values are null — verify this is expected, not an API regression",
+            series_label, null_rate * 100,
+        )
+
+    logger.info("%s: validation passed (%s rows)", series_label, len(frame))
