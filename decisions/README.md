@@ -38,3 +38,4 @@ Expected benefits, trade-offs, risks, and follow-up implications.
 - [0008. ADR placement moves to per-repository decisions folders](0008-adr-placement-per-repository.md)
 - [0009. Series-first schema for multi-source ingestion](0009-series-first-dimensional-schema.md)
 - [0010. FRED source: curated series registry, not runtime search](0010-fred-discovery-phase.md)
+- [0011. First FRED indicator: unemployment rate (UNRATE)](0011-first-fred-indicator-unemployment-rate.md)
