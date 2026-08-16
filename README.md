@@ -113,6 +113,7 @@ Implemented:
 Planned additions include:
 
 - Additional World Bank and IMF indicators
+- World Bank/IMF migration onto the series-first schema (direction decided; see [decision 0012](decisions/0012-migrate-world-bank-imf-to-series-schema.md) — `indicator_observations` remains the live table for both sources until this work begins)
 - Additional FRED indicators (`UNRATENSA`, unemployment rate not seasonally adjusted, already live-confirmed as a candidate — see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md))
 - Expanded transformation library
 - Pipeline orchestration
