@@ -62,3 +62,12 @@ dist/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# -----------------------------------------------------------------------------
+# Local scratch files
+# -----------------------------------------------------------------------------
+
+# commit_message.txt: reusable local file for composing multi-line commit
+# messages (git commit -F commit_message.txt). Cleared and rewritten before
+# each use, never committed.
+commit_message.txt
