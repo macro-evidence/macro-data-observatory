@@ -62,8 +62,8 @@ series = Table(
     Column("seasonal_adjustment_short", String(8), nullable=False),
     Column("created_at", Date, nullable=False),
     UniqueConstraint(
-        "source", "source_series_id",
-        name="uq_series_source_id",
+        "source", "source_series_id", "country_code",
+        name="uq_series_source_id_country",
     ),
 )
 
