@@ -98,7 +98,8 @@ Implemented:
 - World Bank total population ingestion pipeline
 - IMF real GDP growth ingestion pipeline (DataMapper source; see [decision 0004](decisions/0004-imf-datamapper-discovery-phase.md))
 - IMF inflation (average consumer prices) ingestion pipeline (see [decision 0006](decisions/0006-second-imf-indicator-inflation.md))
-- FRED US unemployment rate ingestion pipeline — series-first schema (see [decision 0009](decisions/0009-series-first-dimensional-schema.md)), curated series registry (see [decision 0010](decisions/0010-fred-discovery-phase.md)), indicator selection (see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md)). World Bank and IMF pipelines remain on the original schema, unaffected
+- FRED US unemployment rate ingestion pipeline — series-first schema (see [decision 0009](decisions/0009-series-first-dimensional-schema.md)), curated series registry (see [decision 0010](decisions/0010-fred-discovery-phase.md)), indicator selection (see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md))
+- World Bank and IMF pipelines migrated onto the series-first schema (see [decision 0012](decisions/0012-migrate-world-bank-imf-to-series-schema.md)) — `indicator_observations` is frozen, no longer written to; retained as historical record, exact removal timeline undecided
 - Generalized pipeline runner supporting pluggable extract/transform steps per source (`src/etl/pipelines/common.py`; see [decision 0003](decisions/0003-generalized-pipeline-runner.md))
 - Data-quality validation before load, including a forecast-aware year ceiling for sources with forward-looking data (see [decision 0005](decisions/0005-widen-validation-year-ceiling.md))
 - Continuous integration via GitHub Actions, run on every push and PR (see [decision 0007](decisions/0007-continuous-integration.md))
@@ -113,7 +114,6 @@ Implemented:
 Planned additions include:
 
 - Additional World Bank and IMF indicators
-- World Bank/IMF migration onto the series-first schema (direction decided; see [decision 0012](decisions/0012-migrate-world-bank-imf-to-series-schema.md) — `indicator_observations` remains the live table for both sources until this work begins)
 - Additional FRED indicators (`UNRATENSA`, unemployment rate not seasonally adjusted, already live-confirmed as a candidate — see [decision 0011](decisions/0011-first-fred-indicator-unemployment-rate.md))
 - Expanded transformation library
 - Pipeline orchestration
