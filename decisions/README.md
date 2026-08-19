@@ -40,3 +40,4 @@ Expected benefits, trade-offs, risks, and follow-up implications.
 - [0010. FRED source: curated series registry, not runtime search](0010-fred-discovery-phase.md)
 - [0011. First FRED indicator: unemployment rate (UNRATE)](0011-first-fred-indicator-unemployment-rate.md)
 - [0012. Migrate World Bank and IMF onto the series-first schema](0012-migrate-world-bank-imf-to-series-schema.md)
+- [0013. indicator_observations removal timeline](0013-indicator-observations-removal-timeline.md)
