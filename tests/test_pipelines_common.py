@@ -6,7 +6,7 @@ import pandas as pd
 from etl.pipelines import common
 
 
-@patch("etl.pipelines.common.load_indicator_observations_by_country", return_value=3)
+@patch("etl.pipelines.common.load_annual_indicator_series", return_value=3)
 @patch("etl.pipelines.common.validate_frame")
 @patch("etl.pipelines.common.create_tables")
 @patch("etl.pipelines.common.get_engine")
@@ -57,7 +57,7 @@ def test_run_world_bank_indicator_extract_and_transform_are_wired_correctly():
          patch("etl.pipelines.common.get_engine"), \
          patch("etl.pipelines.common.create_tables"), \
          patch("etl.pipelines.common.validate_frame"), \
-         patch("etl.pipelines.common.load_indicator_observations_by_country", return_value=7):
+         patch("etl.pipelines.common.load_annual_indicator_series", return_value=7):
         mock_fetch.return_value = [{"raw": True}]
         mock_transform.return_value = pd.DataFrame({"country_code": ["USA"]})
 
@@ -70,15 +70,11 @@ def test_run_world_bank_indicator_extract_and_transform_are_wired_correctly():
         )
 
 
-def test_run_pipeline_writes_nothing_to_indicator_observations():
-    """Regression test for decision 0012's repointing -- real engine, no
-    mocked load layer, confirming indicator_observations gets zero new
-    rows. This is the actual invariant the migration depends on; a future
-    change that silently reintroduces a call to load_indicator would
-    break this even if every other test still passed."""
+def test_run_pipeline_persists_only_canonical_series_schema():
+    """The shared runner writes World Bank/IMF data to series/observations only."""
     from datetime import date
-    from sqlalchemy import create_engine, select, func
-    from etl.db import metadata, series, observations, indicator_observations
+    from sqlalchemy import create_engine, inspect, select, func
+    from etl.db import metadata, series, observations
 
     engine = create_engine("sqlite:///:memory:")
     metadata.create_all(engine)
@@ -98,11 +94,7 @@ def test_run_pipeline_writes_nothing_to_indicator_observations():
             extract=lambda code: "raw", transform=lambda raw: frame,
         )
 
+    assert set(inspect(engine).get_table_names()) == {"observations", "series"}
     with engine.connect() as conn:
-        io_count = conn.execute(select(func.count()).select_from(indicator_observations)).scalar()
-        s_count = conn.execute(select(func.count()).select_from(series)).scalar()
-        o_count = conn.execute(select(func.count()).select_from(observations)).scalar()
-
-    assert io_count == 0, "run_pipeline must not write to indicator_observations"
-    assert s_count == 1
-    assert o_count == 1
+        assert conn.execute(select(func.count()).select_from(series)).scalar() == 1
+        assert conn.execute(select(func.count()).select_from(observations)).scalar() == 1

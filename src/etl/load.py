@@ -1,8 +1,8 @@
-"""Load transformed data into Postgres.
+"""Load validated observations into MDO's canonical series-first schema.
 
-Full-refresh per (source, indicator_code): delete existing rows for that
-pair, then bulk-insert the fresh frame, in a single transaction. Simple
-and correct at this data volume — see decisions/0001.
+World Bank and IMF are loaded as one canonical series per country; FRED is
+loaded as one canonical series per pipeline call. Active load paths write only
+to ``series`` and ``observations``.
 """
 from __future__ import annotations
 
@@ -15,49 +15,9 @@ import pandas as pd
 from sqlalchemy import delete, insert, select
 from sqlalchemy.engine import Engine
 
-from .db import indicator_observations, observations, series
+from .db import observations, series
 
 logger = logging.getLogger(__name__)
-
-
-def load_indicator(
-    frame: pd.DataFrame, engine: Engine, source: str, indicator_code: str
-) -> int:
-    """Replace all rows for (source, indicator_code) with the given frame.
-
-    Delete + insert happen in one transaction: a failed insert rolls the
-    delete back too, so a failed run never leaves the table half-empty.
-
-    FROZEN as of decision 0012 -- no longer called by any pipeline
-    (common.run_pipeline was repointed to load_indicator_observations_by_country;
-    verified via a real, non-mocked test that indicator_observations
-    receives zero new rows). Kept only because indicator_observations
-    itself is frozen, not dropped -- decision 0012 left the table's exact
-    removal timeline undecided. Do not wire this into a new pipeline;
-    use load_indicator_observations_by_country instead.
-    """
-    if frame.empty:
-        logger.warning(
-            "Nothing to load for %s / %s — empty frame", source, indicator_code
-        )
-        return 0
-
-    with engine.begin() as conn:
-        conn.execute(
-            delete(indicator_observations).where(
-                indicator_observations.c.source == source,
-                indicator_observations.c.indicator_code == indicator_code,
-            )
-        )
-        frame.to_sql(
-            indicator_observations.name,
-            con=conn,
-            if_exists="append",
-            index=False,
-        )
-
-    logger.info("Loaded %s rows for %s / %s", len(frame), source, indicator_code)
-    return len(frame)
 
 
 def load_fred_series_observations(
@@ -69,9 +29,8 @@ def load_fred_series_observations(
 ) -> int:
     """Get-or-create the series row, then full-refresh its observations.
 
-    Two-step write the flat indicator_observations table never needed
-    (decision 0009): the series row must exist, and its database-assigned
-    id resolved, before observations can reference it via foreign key.
+    The series row must exist, and its database-assigned id must be resolved,
+    before observations can reference it via foreign key.
     Both steps happen in one transaction — a failed observations insert
     rolls back a just-created series row too, so a failed run never leaves
     an orphaned series with no data.
@@ -128,13 +87,13 @@ def load_fred_series_observations(
 
 
 @dataclass(frozen=True)
-class SeriesMigrationSpec:
-    """Migration metadata for one (source, indicator_code) pair, per
-    decision 0012 -- frequency, seasonal adjustment, and units for World
-    Bank/IMF's annual indicators, plus which year-to-date convention
-    applies (stock: July 1, matching World Bank's own stated midyear
-    estimates; flow: January 1, a labeled convention choice, no source
-    states a specific within-year timing for GDP or inflation).
+class AnnualSeriesSpec:
+    """Canonical metadata for one annual World Bank/IMF series family.
+
+    Decision 0012 established these frequency, seasonal-adjustment, units,
+    and year-to-date conventions during migration to the series-first schema.
+    They remain active metadata for current ingestion after the legacy table's
+    retirement.
     """
 
     frequency: str
@@ -146,26 +105,26 @@ class SeriesMigrationSpec:
     date_convention: str  # "stock" or "flow"
 
 
-SERIES_MIGRATION_REGISTRY: dict[tuple[str, str], SeriesMigrationSpec] = {
-    ("world_bank", "NY.GDP.MKTP.CD"): SeriesMigrationSpec(
+ANNUAL_SERIES_REGISTRY: dict[tuple[str, str], AnnualSeriesSpec] = {
+    ("world_bank", "NY.GDP.MKTP.CD"): AnnualSeriesSpec(
         frequency="Annual", frequency_short="A",
         seasonal_adjustment="Not Seasonally Adjusted", seasonal_adjustment_short="NSA",
         units="Current US$", units_short="USD",
         date_convention="flow",
     ),
-    ("world_bank", "SP.POP.TOTL"): SeriesMigrationSpec(
+    ("world_bank", "SP.POP.TOTL"): AnnualSeriesSpec(
         frequency="Annual", frequency_short="A",
         seasonal_adjustment="Not Seasonally Adjusted", seasonal_adjustment_short="NSA",
         units="Persons", units_short="Count",
         date_convention="stock",
     ),
-    ("imf", "NGDP_RPCH"): SeriesMigrationSpec(
+    ("imf", "NGDP_RPCH"): AnnualSeriesSpec(
         frequency="Annual", frequency_short="A",
         seasonal_adjustment="Not Seasonally Adjusted", seasonal_adjustment_short="NSA",
         units="Annual percent change", units_short="%",
         date_convention="flow",
     ),
-    ("imf", "PCPIPCH"): SeriesMigrationSpec(
+    ("imf", "PCPIPCH"): AnnualSeriesSpec(
         frequency="Annual", frequency_short="A",
         seasonal_adjustment="Not Seasonally Adjusted", seasonal_adjustment_short="NSA",
         units="Annual percent change", units_short="%",
@@ -174,21 +133,21 @@ SERIES_MIGRATION_REGISTRY: dict[tuple[str, str], SeriesMigrationSpec] = {
 }
 
 
-def get_migration_spec(source: str, indicator_code: str) -> SeriesMigrationSpec:
-    """Look up migration metadata for a (source, indicator_code) pair.
+def get_annual_series_spec(source: str, indicator_code: str) -> AnnualSeriesSpec:
+    """Look up canonical annual-series metadata for a source/indicator pair.
 
-    Raises KeyError if not registered -- curated per decision 0012, same
-    reasoning as FRED's registry: an unregistered indicator means adding
-    an entry, not guessing values at migration time.
+    Raises ``KeyError`` if the pair is not registered. New annual indicators
+    require an explicit metadata decision rather than guessed units, frequency,
+    seasonal adjustment, or date convention.
     """
     try:
-        return SERIES_MIGRATION_REGISTRY[(source, indicator_code)]
+        return ANNUAL_SERIES_REGISTRY[(source, indicator_code)]
     except KeyError as exc:
         raise KeyError(
             f"({source!r}, {indicator_code!r}) is not in "
-            "SERIES_MIGRATION_REGISTRY. Add an entry with its frequency, "
-            "seasonal adjustment, units, and date convention (decision "
-            "0012) before migrating this indicator."
+            "ANNUAL_SERIES_REGISTRY. Add an entry with its frequency, "
+            "seasonal adjustment, units, and date convention before loading "
+            "this indicator."
         ) from exc
 
 
@@ -200,11 +159,10 @@ def _year_to_date(year: int, date_convention: str) -> date:
     raise ValueError(f"Unknown date_convention: {date_convention!r}")
 
 
-def load_indicator_observations_by_country(
+def load_annual_indicator_series(
     frame: pd.DataFrame, engine: Engine, source: str, indicator_code: str
 ) -> int:
-    """Migrate a multi-country indicator_observations-shaped frame into
-    series/observations (decision 0012).
+    """Load a multi-country annual indicator frame into series/observations.
 
     Structurally different from load_fred_series_observations: FRED is
     one series per pipeline call, but one World Bank/IMF indicator spans
@@ -213,18 +171,17 @@ def load_indicator_observations_by_country(
     full-refresh per country, same semantics as every other load function
     here, just applied per group instead of once per call.
 
-    Expects the same frame shape world_bank_records_to_frame and
-    imf_indicator_values_to_frame already produce (source, indicator_code,
-    indicator_name, country_code, country_name, year, value, loaded_at) --
-    the existing indicator_observations shape, not a new one.
+    Expects the annual indicator frame produced by the World Bank and IMF
+    transforms: source, indicator_code, indicator_name, country_code,
+    country_name, year, value, and loaded_at.
     """
     if frame.empty:
         logger.warning(
-            "Nothing to migrate for %s / %s -- empty frame", source, indicator_code
+            "Nothing to load for %s / %s -- empty frame", source, indicator_code
         )
         return 0
 
-    spec = get_migration_spec(source, indicator_code)
+    spec = get_annual_series_spec(source, indicator_code)
     total_rows = 0
     country_count = 0
 
@@ -277,7 +234,7 @@ def load_indicator_observations_by_country(
                 total_rows += len(obs_rows)
 
     logger.info(
-        "Migrated %s observations across %s countries for %s / %s",
+        "Loaded %s observations across %s countries for %s / %s",
         total_rows, country_count, source, indicator_code,
     )
     return total_rows

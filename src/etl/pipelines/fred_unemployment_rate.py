@@ -1,15 +1,12 @@
-"""Entry point: FRED unemployment rate ingestion.
+"""Entry point: FRED unemployment-rate ingestion.
 
 Run directly:
     python -m etl.pipelines.fred_unemployment_rate
 
-Does not use common.run_pipeline. That runner is bound to the flat
-indicator_observations table and load_indicator (decision 0009's
-Consequences flagged this explicitly). FRED writes to series/observations
-instead, which needs a database-assigned series_id resolved before
-observations can be loaded — see load.load_fred_series_observations'
-docstring. A genuinely different shape, not an oversight or duplication
-of common.py by mistake.
+FRED keeps a dedicated runner because one pipeline call represents one
+provider-defined series whose live metadata is verified before load. World Bank
+and IMF use the shared country-fan-out runner instead. Both paths persist to
+the canonical ``series``/``observations`` schema.
 """
 from __future__ import annotations
 

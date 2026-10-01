@@ -89,9 +89,8 @@ def validate_observations_frame(frame: pd.DataFrame, series_label: str) -> None:
     """Run quality checks on a transformed, date-keyed observations frame
     before it's loaded.
 
-    Parallel to validate_frame, not a replacement — World Bank and IMF
-    keep using validate_frame, unchanged, on indicator_observations. This
-    function exists because validate_frame hardcodes a `year` column and a
+    Parallel to validate_frame, not a replacement — World Bank and IMF use ``validate_frame`` on annual-indicator frames. This
+    function exists because ``validate_frame`` uses a ``year`` column and a
     (source, indicator_code, country_code, year) dedup key that a
     date-keyed, single-series frame doesn't have — flagged as a certain,
     not conditional, need in decision 0010's Consequences.

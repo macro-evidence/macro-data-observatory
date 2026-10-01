@@ -1,4 +1,4 @@
-"""Transform raw source records into the indicator_observations shape."""
+"""Transform raw provider records into validated ingestion frames."""
 from __future__ import annotations
 
 from datetime import date

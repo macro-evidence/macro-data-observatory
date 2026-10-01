@@ -1,12 +1,8 @@
-"""Database engine and schema for MDO's Local ETL stage.
+"""Database engine and canonical series-first schema for MDO.
 
-Two schemas coexist deliberately, per decisions/0009: the original flat
-`indicator_observations` table (World Bank, IMF — annual-only, no
-frequency or seasonal-adjustment concept) stays exactly as it is, untouched
-by this addition. `series`/`observations` is the new series-first shape,
-used by FRED and any future source with real frequency/seasonal-adjustment
-variation. World Bank and IMF migrate onto the new shape only later,
-per 0009's explicit sequencing — not part of this change.
+All active sources persist through ``series`` and ``observations``. The legacy
+``indicator_observations`` table was retired under decisions 0012 and 0013
+after the bounded production proving period completed.
 """
 from __future__ import annotations
 
@@ -27,24 +23,6 @@ from sqlalchemy.engine import Engine
 from .config import get_settings
 
 metadata = MetaData()
-
-indicator_observations = Table(
-    "indicator_observations",
-    metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("source", String(32), nullable=False),
-    Column("indicator_code", String(64), nullable=False),
-    Column("indicator_name", String(256), nullable=False),
-    Column("country_code", String(8), nullable=False),
-    Column("country_name", String(128), nullable=False),
-    Column("year", Integer, nullable=False),
-    Column("value", Float, nullable=True),
-    Column("loaded_at", Date, nullable=False),
-    UniqueConstraint(
-        "source", "indicator_code", "country_code", "year",
-        name="uq_indicator_observation",
-    ),
-)
 
 series = Table(
     "series",

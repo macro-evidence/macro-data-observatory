@@ -1,4 +1,4 @@
-"""Tests for the World Bank/IMF migration path in load.py (decision 0012).
+"""Tests for the active World Bank/IMF annual-series load path.
 Real in-memory SQLite, no live DB required -- same pattern as test_fred_load.py.
 """
 from datetime import date
@@ -9,9 +9,9 @@ from sqlalchemy import create_engine, select, func
 
 from etl.db import metadata, series, observations
 from etl.load import (
-    SERIES_MIGRATION_REGISTRY,
-    get_migration_spec,
-    load_indicator_observations_by_country,
+    ANNUAL_SERIES_REGISTRY,
+    get_annual_series_spec,
+    load_annual_indicator_series,
     _year_to_date,
 )
 
@@ -25,7 +25,7 @@ def _fresh_engine():
 # --- registry and lookup ---
 
 def test_registry_covers_all_four_decision_0012_indicators():
-    assert set(SERIES_MIGRATION_REGISTRY) == {
+    assert set(ANNUAL_SERIES_REGISTRY) == {
         ("world_bank", "NY.GDP.MKTP.CD"),
         ("world_bank", "SP.POP.TOTL"),
         ("imf", "NGDP_RPCH"),
@@ -34,18 +34,18 @@ def test_registry_covers_all_four_decision_0012_indicators():
 
 
 def test_gdp_and_inflation_use_flow_convention():
-    assert get_migration_spec("world_bank", "NY.GDP.MKTP.CD").date_convention == "flow"
-    assert get_migration_spec("imf", "NGDP_RPCH").date_convention == "flow"
-    assert get_migration_spec("imf", "PCPIPCH").date_convention == "flow"
+    assert get_annual_series_spec("world_bank", "NY.GDP.MKTP.CD").date_convention == "flow"
+    assert get_annual_series_spec("imf", "NGDP_RPCH").date_convention == "flow"
+    assert get_annual_series_spec("imf", "PCPIPCH").date_convention == "flow"
 
 
 def test_population_uses_stock_convention():
-    assert get_migration_spec("world_bank", "SP.POP.TOTL").date_convention == "stock"
+    assert get_annual_series_spec("world_bank", "SP.POP.TOTL").date_convention == "stock"
 
 
 def test_unregistered_pair_raises_key_error():
-    with pytest.raises(KeyError, match="not in SERIES_MIGRATION_REGISTRY"):
-        get_migration_spec("world_bank", "NOT.REGISTERED")
+    with pytest.raises(KeyError, match="not in ANNUAL_SERIES_REGISTRY"):
+        get_annual_series_spec("world_bank", "NOT.REGISTERED")
 
 
 # --- _year_to_date ---
@@ -63,7 +63,7 @@ def test_year_to_date_unknown_convention_raises():
         _year_to_date(2023, "quarterly")
 
 
-# --- load_indicator_observations_by_country ---
+# --- load_annual_indicator_series ---
 
 def _frame(**overrides):
     data = {
@@ -83,7 +83,7 @@ def test_creates_one_series_row_per_country():
         _frame(country_code=["IND"], country_name=["India"], value=[3.7e12]),
     ], ignore_index=True)
 
-    n = load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    n = load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
 
     assert n == 2
     with engine.connect() as conn:
@@ -94,7 +94,7 @@ def test_missing_value_stored_as_null():
     engine = _fresh_engine()
     frame = _frame(value=[None])
 
-    load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
 
     with engine.connect() as conn:
         value = conn.execute(select(observations.c.value)).scalar()
@@ -103,7 +103,7 @@ def test_missing_value_stored_as_null():
 
 def test_flow_indicator_date_is_january_first():
     engine = _fresh_engine()
-    load_indicator_observations_by_country(_frame(year=[2023]), engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(_frame(year=[2023]), engine, "world_bank", "NY.GDP.MKTP.CD")
 
     with engine.connect() as conn:
         obs_date = conn.execute(select(observations.c.date)).scalar()
@@ -116,7 +116,7 @@ def test_stock_indicator_date_is_july_first():
         indicator_code=["SP.POP.TOTL"], indicator_name=["Population, total"],
         year=[2023], value=[335000000.0],
     )
-    load_indicator_observations_by_country(frame, engine, "world_bank", "SP.POP.TOTL")
+    load_annual_indicator_series(frame, engine, "world_bank", "SP.POP.TOTL")
 
     with engine.connect() as conn:
         obs_date = conn.execute(select(observations.c.date)).scalar()
@@ -127,8 +127,8 @@ def test_rerun_reuses_series_rows_not_duplicated():
     engine = _fresh_engine()
     frame = _frame()
 
-    load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
-    load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
 
     with engine.connect() as conn:
         assert conn.execute(select(func.count()).select_from(series)).scalar() == 1
@@ -138,8 +138,8 @@ def test_rerun_refreshes_observations_not_duplicated():
     engine = _fresh_engine()
     frame = _frame()
 
-    load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
-    load_indicator_observations_by_country(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(frame, engine, "world_bank", "NY.GDP.MKTP.CD")
 
     with engine.connect() as conn:
         assert conn.execute(select(func.count()).select_from(observations)).scalar() == 1
@@ -147,8 +147,8 @@ def test_rerun_refreshes_observations_not_duplicated():
 
 def test_updated_value_replaces_old_one_on_rerun():
     engine = _fresh_engine()
-    load_indicator_observations_by_country(_frame(value=[27e12]), engine, "world_bank", "NY.GDP.MKTP.CD")
-    load_indicator_observations_by_country(_frame(value=[28e12]), engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(_frame(value=[27e12]), engine, "world_bank", "NY.GDP.MKTP.CD")
+    load_annual_indicator_series(_frame(value=[28e12]), engine, "world_bank", "NY.GDP.MKTP.CD")
 
     with engine.connect() as conn:
         value = conn.execute(select(observations.c.value)).scalar()
@@ -157,7 +157,7 @@ def test_updated_value_replaces_old_one_on_rerun():
 
 def test_empty_frame_loads_nothing():
     engine = _fresh_engine()
-    n = load_indicator_observations_by_country(pd.DataFrame(), engine, "world_bank", "NY.GDP.MKTP.CD")
+    n = load_annual_indicator_series(pd.DataFrame(), engine, "world_bank", "NY.GDP.MKTP.CD")
 
     assert n == 0
     with engine.connect() as conn:
