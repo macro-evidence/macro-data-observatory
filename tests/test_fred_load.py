@@ -4,10 +4,8 @@ No live/credentialed database required — this is a self-contained,
 ephemeral engine, consistent with every other test file's "no DB
 required" standard, not a live-database integration test.
 
-load.py has no other test coverage in this repo (load_indicator is only
-exercised indirectly, mocked away in test_pipelines_common.py). FRED's
-get-or-create-then-load flow is genuinely more complex — a real regression
-test here is warranted, not just parity with existing precedent.
+FRED's get-or-create-then-load flow is a distinct code path from the
+World Bank/IMF annual-series loader, so it has its own regression tests.
 """
 from datetime import date
 
