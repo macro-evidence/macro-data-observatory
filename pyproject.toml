@@ -1,9 +1,16 @@
 [project]
 name = "macro-data-observatory"
 version = "0.1.0"
-description = "Open-source data platform for ingesting, validating, and structuring macroeconomic datasets."
+description = "Open-source macroeconomic data infrastructure for acquiring, validating, structuring, and maintaining data from authoritative public sources through reproducible pipelines."
 readme = "README.md"
 requires-python = ">=3.11"
+dependencies = [
+    "pandas>=3.0.1,<4",
+    "psycopg>=3.3.5,<4",
+    "python-dotenv>=1.2.2,<2",
+    "requests>=2.32.5,<3",
+    "SQLAlchemy>=2.0.48,<3",
+]
 
 authors = [
     { name = "Macro Evidence", email = "hello@macro-evidence.com" },
@@ -34,14 +41,19 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://mdo.macro-evidence.com"
+Homepage = "https://macro-evidence.com/software"
 Source = "https://github.com/macro-evidence/macro-data-observatory"
 Issues = "https://github.com/macro-evidence/macro-data-observatory/issues"
 Funding = "https://github.com/sponsors/macro-evidence"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1.1,<10",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools==84.0.0"]
 build-backend = "setuptools.build_meta"
