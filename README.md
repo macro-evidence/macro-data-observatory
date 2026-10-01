@@ -1,6 +1,6 @@
 # Macro Data Observatory (MDO)
 
-[![Verification](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml/badge.svg)](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/tests.yml)
+[![Verification](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/verification.yml/badge.svg)](https://github.com/macro-evidence/macro-data-observatory/actions/workflows/verification.yml)
 
 Macro Data Observatory (MDO) is the flagship and foundational platform of [Macro Evidence](https://github.com/macro-evidence): open-source macroeconomic data infrastructure for acquiring, validating, structuring, and maintaining data from authoritative public sources through engineered, reproducible pipelines.
 
@@ -41,8 +41,8 @@ PostgreSQL access is mediated through SQLAlchemy. MDO uses Psycopg 3 as the Post
 ## Repository structure
 
 ```text
-.github/                 CI and dependency-automation configuration
-decisions/               repository-specific architecture decision records
+.github/                  CI and dependency-automation configuration
+decisions/                repository-specific architecture decision records
 src/etl/
   pipelines/              executable ingestion pipelines
   sources/                provider-specific API clients and metadata checks
@@ -140,7 +140,7 @@ npx --yes markdownlint-cli@0.49.1 --config .markdownlint-adr0012.jsonc decisions
 
 The main Markdown configuration enables the standard rule set except line-length enforcement. Two accepted historical ADRs retain narrow file-specific formatting exceptions without weakening the repository-wide rule set.
 
-GitHub Actions runs Markdown verification plus the Python suite on every push and on pull requests targeting `main`. Python tests run against the declared minimum Python version and the current upper tested development line; see [`.github/workflows/tests.yml`](.github/workflows/tests.yml).
+GitHub Actions runs Markdown verification plus the Python suite on every push and on pull requests targeting `main`. Python tests run against the declared minimum Python version and the current upper tested development line; see [`.github/workflows/verification.yml`](.github/workflows/verification.yml).
 
 ## Updating dependencies
 
