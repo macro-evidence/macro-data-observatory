@@ -1,7 +1,7 @@
 # 0001. Single flat table for Stage 1 ETL, not a dimensional model
 
-**Status:** Accepted
-**Date:** 2026-07-24
+**Status:** Superseded
+**Superseded by:** [decision 0009](0009-series-first-dimensional-schema.md) and [decision 0012](0012-migrate-world-bank-imf-to-series-schema.md)
 
 ## Context
 

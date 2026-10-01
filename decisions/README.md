@@ -1,30 +1,8 @@
 # Architecture Decision Records
 
-Non-trivial technical decisions for Macro Data Observatory are recorded here, per [`GOVERNANCE.md`](https://github.com/macro-evidence/governance/blob/main/GOVERNANCE.md) §5.
+This directory contains decisions specific to Macro Data Observatory. Decisions that genuinely apply across multiple Macro Evidence repositories or to the organization's structure belong in the [Governance decision log](https://github.com/macro-evidence/governance/tree/main/decisions).
 
-These are decisions specific to this repository. Decisions that genuinely apply across multiple Macro Evidence repositories are recorded in [`governance/decisions/`](https://github.com/macro-evidence/governance/tree/main/decisions) instead — see that folder's own README for the distinction.
-
-## Format
-
-One file per decision: `NNNN-short-title.md`, numbered sequentially, using:
-
-```
-# NNNN. Short title
-
-**Status:** Proposed / Accepted / Superseded
-**Date:** YYYY-MM-DD
-
-## Context
-What problem or question this addresses.
-
-## Decision
-What was decided.
-
-## Consequences
-Expected benefits, trade-offs, risks, and follow-up implications.
-```
-
-**Decision count per ADR:** Most ADRs record exactly one decision, under the singular `## Decision` heading above. An ADR may record more than one, under a pluralized `## Decisions` heading, only when the decisions are inseparable — deciding one without the other would leave the architecture's boundary undefined (see [decision 0009](0009-series-first-dimensional-schema.md): a schema decision and what it explicitly excludes, decided together because the exclusion *is* the decision's scope). When two decisions could each be accepted, revisited, or superseded independently of the other, they get separate ADR numbers instead.
+The shared ADR contract—including numbering, filenames, references, lifecycle metadata, required structure, decision-boundary grammar, and index behavior—is defined in Macro Evidence's [Documentation Standards](https://github.com/macro-evidence/governance/blob/main/DOCUMENTATION_STANDARDS.md#5-architecture-decision-records).
 
 ## Decisions
 
@@ -41,3 +19,4 @@ Expected benefits, trade-offs, risks, and follow-up implications.
 - [0011. First FRED indicator: unemployment rate (UNRATE)](0011-first-fred-indicator-unemployment-rate.md)
 - [0012. Migrate World Bank and IMF onto the series-first schema](0012-migrate-world-bank-imf-to-series-schema.md)
 - [0013. indicator_observations removal timeline](0013-indicator-observations-removal-timeline.md)
+- [0014. Adopt Psycopg 3 as the PostgreSQL driver](0014-adopt-psycopg-3-postgresql-driver.md)
