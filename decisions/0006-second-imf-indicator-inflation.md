@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file MD060 -->
 # 0006. Second IMF indicator: inflation, average consumer prices (PCPIPCH)
 
 **Status:** Accepted

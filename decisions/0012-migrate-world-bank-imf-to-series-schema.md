@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file MD032 MD060 -->
 # 0012. Migrate World Bank and IMF onto the series-first schema
 
 **Status:** Accepted

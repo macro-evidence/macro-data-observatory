@@ -133,12 +133,10 @@ python -m pytest -v
 Lint maintained Markdown:
 
 ```text
-npx --yes markdownlint-cli@0.49.1 --ignore-path .gitignore --ignore decisions/0006-second-imf-indicator-inflation.md --ignore decisions/0012-migrate-world-bank-imf-to-series-schema.md "**/*.md"
-npx --yes markdownlint-cli@0.49.1 --config .markdownlint-adr0006.jsonc decisions/0006-second-imf-indicator-inflation.md
-npx --yes markdownlint-cli@0.49.1 --config .markdownlint-adr0012.jsonc decisions/0012-migrate-world-bank-imf-to-series-schema.md
+npx --yes markdownlint-cli@0.49.1 --ignore-path .gitignore "**/*.md"
 ```
 
-The main Markdown configuration enables the standard rule set except line-length enforcement. Two accepted historical ADRs retain narrow file-specific formatting exceptions without weakening the repository-wide rule set.
+The Markdown configuration enables the standard rule set except line-length enforcement. Two accepted historical ADRs carry a file-level directive that disables the specific formatting rules they do not satisfy.
 
 GitHub Actions runs Markdown verification plus the Python suite on every push and on pull requests targeting `main`. Python tests run against the declared minimum Python version and the current upper tested development line; see [`.github/workflows/verification.yml`](.github/workflows/verification.yml).
 
