@@ -27,9 +27,7 @@ jobs:
 
       - name: Lint Markdown
         run: |
-          npx --yes markdownlint-cli@0.49.1 --ignore-path .gitignore --ignore decisions/0006-second-imf-indicator-inflation.md --ignore decisions/0012-migrate-world-bank-imf-to-series-schema.md "**/*.md"
-          npx --yes markdownlint-cli@0.49.1 --config .markdownlint-adr0006.jsonc decisions/0006-second-imf-indicator-inflation.md
-          npx --yes markdownlint-cli@0.49.1 --config .markdownlint-adr0012.jsonc decisions/0012-migrate-world-bank-imf-to-series-schema.md
+          npx --yes markdownlint-cli@0.49.1 --ignore-path .gitignore "**/*.md"
 
   pytest:
     runs-on: ubuntu-24.04
