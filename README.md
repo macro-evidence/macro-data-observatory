@@ -44,12 +44,13 @@ PostgreSQL access is mediated through SQLAlchemy. MDO uses Psycopg 3 as the Post
 .github/                  CI and dependency-automation configuration
 decisions/                repository-specific architecture decision records
 src/etl/
-  pipelines/              executable ingestion pipelines
-  sources/                provider-specific API clients and metadata checks
-  db.py                   canonical SQLAlchemy schema and engine
-  load.py                 persistence logic and annual-series registry
-  transform.py            transformation logic
-  validate.py             structural and data-quality validation
+├── pipelines/            executable ingestion pipelines
+├── sources/              provider-specific API clients and metadata checks
+├── config.py             environment configuration
+├── db.py                 canonical SQLAlchemy schema and engine
+├── load.py               persistence logic and annual-series registry
+├── transform.py          transformation logic
+└── validate.py           structural and data-quality validation
 tests/                    automated test suite
 .env.example              local configuration template
 pyproject.toml            package metadata and direct dependency ranges
