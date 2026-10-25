@@ -20,3 +20,4 @@ The shared ADR contract—including numbering, filenames, references, lifecycle 
 - [0012. Migrate World Bank and IMF onto the series-first schema](0012-migrate-world-bank-imf-to-series-schema.md)
 - [0013. indicator_observations removal timeline](0013-indicator-observations-removal-timeline.md)
 - [0014. Adopt Psycopg 3 as the PostgreSQL driver](0014-adopt-psycopg-3-postgresql-driver.md)
+- [0015. License MDO under AGPL-3.0-only](0015-license-mdo-under-agpl-3-0-only.md)
